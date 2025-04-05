@@ -1,0 +1,80 @@
+# Fluid Tracker Program with Dynamic Totals and Undo Feature
+
+# Constants for fluid types and their sizes in ounces
+FLUIDS = {"water": 16, "coffee": 16, "milk": 8}
+DAILY_GOAL_MIN = 130
+DAILY_GOAL_MAX = 160
+
+# Data structure to track past days
+history = {}
+
+def track_today():
+    # Initialize fluid amounts
+    fluid_totals = {"water": 0, "coffee": 0, "milk": 0}
+    print("\nEnter your fluid intake for today. Type 'done' when finished, 'status' to check current levels, or '-fluid' to remove a serving.")
+
+    while True:
+        fluid_type = input("Enter fluid type (Water, Coffee, Milk): ").lower()
+        if fluid_type == 'done':  # Exit the loop
+            break
+        elif fluid_type == 'status':  # Show current fluid levels
+            display_status(fluid_totals)
+        elif fluid_type.startswith('-'):  # Remove a serving
+            actual_fluid = fluid_type[1:]  # Remove the '-' character
+            if actual_fluid in FLUIDS:
+                if fluid_totals[actual_fluid] >= FLUIDS[actual_fluid]:
+                    fluid_totals[actual_fluid] -= FLUIDS[actual_fluid]
+                    total_fluid = sum(fluid_totals.values())
+                    print(f"Removed {FLUIDS[actual_fluid]} oz of {actual_fluid.capitalize()}. Total fluid consumed so far: {total_fluid} oz.")
+                else:
+                    print(f"Cannot remove {actual_fluid.capitalize()} because the total for it is already zero.")
+            else:
+                print("Unknown fluid type. Please enter Water, Coffee, or Milk.")
+        elif fluid_type in FLUIDS:  # Add a serving
+            fluid_totals[fluid_type] += FLUIDS[fluid_type]
+            total_fluid = sum(fluid_totals.values())
+            print(f"Added {FLUIDS[fluid_type]} oz of {fluid_type.capitalize()}. Total fluid consumed so far: {total_fluid} oz.")
+        else:
+            print("Unknown fluid type. Please enter Water, Coffee, or Milk.")
+    
+    return fluid_totals
+
+def display_status(fluid_totals):
+    # Calculate the total fluid consumed
+    total_fluid = sum(fluid_totals.values())
+    print("\nCurrent fluid levels:")
+    for fluid, amount in fluid_totals.items():
+        print(f"{fluid.capitalize()}: {amount} oz")
+    print(f"Total fluid consumed: {total_fluid} oz today\n")
+
+def calculate_progress(total_fluid):
+    percentage = (total_fluid / DAILY_GOAL_MAX) * 100
+    return percentage
+
+def main():
+    print("Welcome to the Fluid Tracker!")
+    fluid_totals = track_today()
+    total_fluid = sum(fluid_totals.values())
+    progress = calculate_progress(total_fluid)
+    
+    print(f"\nTotal fluid consumed: {total_fluid} oz")
+    print(f"You have reached {progress:.2f}% of your maximum daily goal.")
+    if total_fluid < DAILY_GOAL_MIN:
+        print("You are below your minimum goal. Try to drink more fluids!")
+    elif total_fluid > DAILY_GOAL_MAX:
+        print("You have exceeded your maximum goal. Be mindful of your intake!")
+    else:
+        print("Great job staying within your goal range!")
+    
+    # Save today's data in history
+    import datetime
+    today = datetime.date.today()
+    history[today] = fluid_totals
+    
+    print("\nPast records:")
+    for date, fluids in history.items():
+        total_for_day = sum(fluids.values())
+        print(f"{date}: {total_for_day} oz ({fluids})")
+
+if __name__ == "__main__":
+    main()
